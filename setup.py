@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
-import os
-
 from setuptools import setup, find_packages
-from distutils.extension import Extension
-import re
+
 
 setup(
     name='bndl_elastic',
@@ -23,6 +20,7 @@ setup(
     zip_safe=False,
 
     install_requires=[
+        'bndl',
         'elasticsearch',
         'netifaces',
     ],
