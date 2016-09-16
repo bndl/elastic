@@ -55,8 +55,7 @@ class NodeLocalSelectorClass(RoundRobinSelector):
         for connection in connections:
             addr = gethostbyname(parse_hostname(connection.host))
             if addr in self.local_addresses:
-                return connections
-        return connections[0]
+                return connection
         return super().select(connections)
 
 
