@@ -10,6 +10,7 @@ class ElasticTest(DatasetTest):
         super().setUp()
         self.ctx.conf['bndl_elastic.index'] = self.index
         self.ctx.conf['bndl_elastic.doc_type'] = self.doc_type
+        self.ctx.conf['bndl_elastic.hosts'] = '127.0.0.1'
 
         with self.ctx.elastic_client() as client:
             client.indices.delete(self.index, ignore=404)

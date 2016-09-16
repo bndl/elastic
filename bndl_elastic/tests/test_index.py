@@ -1,4 +1,4 @@
-from bndl.rmi.invocation import InvocationException
+from bndl.rmi import InvocationException
 from bndl_elastic.tests import ElasticTest
 
 
