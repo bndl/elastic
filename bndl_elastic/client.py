@@ -41,6 +41,7 @@ def parse_hostname(url):
     return urlparse(url).hostname
 
 
+
 class NodeLocalSelectorClass(RoundRobinSelector):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -50,6 +51,7 @@ class NodeLocalSelectorClass(RoundRobinSelector):
             for iface in netifaces.interfaces()
             for addr in netifaces.ifaddresses(iface).get(af, ())
         }
+
 
     def select(self, connections):
         for connection in connections:
@@ -73,21 +75,32 @@ def elastic_client(ctx, hosts=None):
     pools = getattr(elastic_client, 'pools', None)
     if not pools:
         elastic_client.pools = pools = {}
+
     # determine contact points, either given or ip addresses of the workers
     hosts = _get_hosts(ctx, *(hosts or ctx.conf.get('bndl_elastic.hosts') or ()))
+
     # check if there is a cached client object
     pool = pools.get(hosts)
     # or create one if not
     if not pool:
+        timeout = ctx.conf['bndl_elastic.timeout']
+        max_retries = ctx.conf['bndl_elastic.max_retries']
+        retry_on_timeout = ctx.conf['bndl_elastic.retry_on_timeout']
         def create():
-            return Elasticsearch(hosts,
-                                 connection_pool_class=NodeLocalConnectionPool)
+            return Elasticsearch(
+                hosts,
+                timeout=timeout,
+                max_retries=max_retries,
+                retry_on_timeout=retry_on_timeout,
+                connection_pool_class=NodeLocalConnectionPool
+            )
 
         pools[hosts] = pool = ObjectPool(create, max_size=4)
 
     # take a session from the pool, yield it to the caller
     # and put the session back in the pool
     session = pool.get()
+
     try:
         yield session
     finally:

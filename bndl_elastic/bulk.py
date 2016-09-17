@@ -9,7 +9,7 @@ def _refresh_index(job, name, hosts=None):
         client.indices.refresh(name)
 
 
-def execute_bulk(ctx, actions, hosts=None):
+def execute_bulk(ctx, actions, hosts=None, **kwargs):
     '''
     Perform actions on Elastic in bulk.
     
@@ -22,13 +22,19 @@ def execute_bulk(ctx, actions, hosts=None):
         An iterable of actions to execute.
     :param hosts: str or iterable (optional)
         Hosts which serve as contact points for the Elastic client.
+    :param kwargs: 
+        Keyword arguments passed on to the elasticsearch bulk function.
+        Default values are read from ctx.conf['bndl_elastic.bulk_*'].
     '''
+    kwargs.setdefault('chunk_size', ctx.conf['bndl_elastic.bulk_chunk_size'])
+    kwargs.setdefault('max_chunk_bytes', ctx.conf['bndl_elastic.bulk_max_chunk_bytes'])
+    kwargs.setdefault('request_timeout', ctx.conf['bndl_elastic.bulk_timeout'])
     with elastic_client(ctx, hosts=hosts) as client:
-        stats = bulk(client, actions, stats_only=True)
+        stats = bulk(client, actions, stats_only=True, **kwargs)
         return (stats[0],)
 
 
-def elastic_bulk(self, refresh_index=None, hosts=None):
+def elastic_bulk(self, refresh_index=None, hosts=None, **kwargs):
     '''
     Perform actions on Elastic in bulk.
     
@@ -39,18 +45,21 @@ def elastic_bulk(self, refresh_index=None, hosts=None):
         Comma separated name of the indices to refresh or None to skip.
     :param hosts: str or iterable (optional)
         Hosts which serve as contact points for the Elastic client.
+    :param kwargs: 
+        Keyword arguments passed on to the elasticsearch bulk function.
+        Default values are read from ctx.conf['bndl_elastic.bulk_*'].
     '''
-    exec_bulk = self.map_partitions(partial(execute_bulk, self.ctx, hosts=hosts))
+    exec_bulk = self.map_partitions(partial(execute_bulk, self.ctx, hosts=hosts, **kwargs))
     if refresh_index:
         exec_bulk.cleanup = partial(_refresh_index, name=refresh_index, hosts=hosts)
     return exec_bulk
 
 
-def _elastic_bulk(actions, index=None, doc_type=None, refresh=False, hosts=None):
-    return actions.elastic_bulk(refresh_index=index if refresh else None, hosts=hosts)
+def _elastic_bulk(actions, index=None, doc_type=None, refresh=False, hosts=None, **kwargs):
+    return actions.elastic_bulk(refresh_index=index if refresh else None, hosts=hosts, **kwargs)
 
 
-def elastic_index(self, index=None, doc_type=None, refresh=False, hosts=None):
+def elastic_index(self, index=None, doc_type=None, refresh=False, hosts=None, **kwargs):
     '''
     Index documents into Elastic.
     
@@ -62,6 +71,9 @@ def elastic_index(self, index=None, doc_type=None, refresh=False, hosts=None):
         Whether to refresh the index.
     :param hosts: str or iterable (optional)
         Hosts which serve as contact points for the Elastic client.
+    :param kwargs:
+        Keyword arguments passed on to the elasticsearch bulk function.
+        Default values are read from ctx.conf['bndl_elastic.bulk_*'].
     '''
     index, doc_type = resource_from_conf(self.ctx.conf, index, doc_type)
     return _elastic_bulk(self.map(lambda doc: {
@@ -69,10 +81,10 @@ def elastic_index(self, index=None, doc_type=None, refresh=False, hosts=None):
         '_index': index,
         '_type': doc_type,
         '_source': doc,
-    }), index, doc_type, refresh, hosts)
+    }), index, doc_type, refresh, hosts, **kwargs)
 
 
-def elastic_create(self, index=None, doc_type=None, refresh=False, hosts=None):
+def elastic_create(self, index=None, doc_type=None, refresh=False, hosts=None, **kwargs):
     '''
     Create documents in Elastic from a dataset of key (document id), value
     (document) pairs. Documents are only indexed if the document id doesn't
@@ -86,6 +98,9 @@ def elastic_create(self, index=None, doc_type=None, refresh=False, hosts=None):
         Whether to refresh the index afterwards.
     :param hosts: str or iterable (optional)
         Hosts which serve as contact points for the Elastic client.
+    :param kwargs:
+        Keyword arguments passed on to the elasticsearch bulk function.
+        Default values are read from ctx.conf['bndl_elastic.bulk_*'].
     '''
     index, doc_type = resource_from_conf(self.ctx.conf, index, doc_type)
     return _elastic_bulk(self.starmap(lambda doc_id, doc: {
@@ -94,10 +109,10 @@ def elastic_create(self, index=None, doc_type=None, refresh=False, hosts=None):
         '_type': doc_type,
         '_id': doc_id,
         '_source': doc,
-    }), index, doc_type, refresh, hosts)
+    }), index, doc_type, refresh, hosts, **kwargs)
 
 
-def elastic_update(self, index=None, doc_type=None, refresh=False, hosts=None):
+def elastic_update(self, index=None, doc_type=None, refresh=False, hosts=None, **kwargs):
     '''
     Update documents in Elastic search from a dataset of key (document id),
     value ((partial) document) pairs.
@@ -110,6 +125,9 @@ def elastic_update(self, index=None, doc_type=None, refresh=False, hosts=None):
         Whether to refresh the index afterwards.
     :param hosts: str or iterable (optional)
         Hosts which serve as contact points for the Elastic client.
+    :param kwargs:
+        Keyword arguments passed on to the elasticsearch bulk function.
+        Default values are read from ctx.conf['bndl_elastic.bulk_*'].
     '''
     index, doc_type = resource_from_conf(self.ctx.conf, index, doc_type)
     return _elastic_bulk(self.starmap(lambda doc_id, doc: {
@@ -118,10 +136,10 @@ def elastic_update(self, index=None, doc_type=None, refresh=False, hosts=None):
         '_type': doc_type,
         '_id': doc_id,
         'doc': doc,
-    }), index, doc_type, refresh, hosts)
+    }), index, doc_type, refresh, hosts, **kwargs)
 
 
-def elastic_upsert(self, index=None, doc_type=None, refresh=False, hosts=None):
+def elastic_upsert(self, index=None, doc_type=None, refresh=False, hosts=None, **kwargs):
     '''
     Upsert (update or create) documents in Elastic search from a dataset of key
     (document id), value ((partial) document) pairs.
@@ -134,6 +152,9 @@ def elastic_upsert(self, index=None, doc_type=None, refresh=False, hosts=None):
         Whether to refresh the index afterwards.
     :param hosts: str or iterable (optional)
         Hosts which serve as contact points for the Elastic client.
+    :param kwargs:
+        Keyword arguments passed on to the elasticsearch bulk function.
+        Default values are read from ctx.conf['bndl_elastic.bulk_*'].
     '''
     index, doc_type = resource_from_conf(self.ctx.conf, index, doc_type)
     return _elastic_bulk(self.starmap(lambda doc_id, doc: {
@@ -143,10 +164,10 @@ def elastic_upsert(self, index=None, doc_type=None, refresh=False, hosts=None):
         '_id': doc_id,
         'doc': doc,
         'doc_as_upsert': True
-    }), index, doc_type, refresh, hosts)
+    }), index, doc_type, refresh, hosts, **kwargs)
 
 
-def elastic_delete(self, index=None, doc_type=None, refresh=False, hosts=None):
+def elastic_delete(self, index=None, doc_type=None, refresh=False, hosts=None, **kwargs):
     '''
     Delete documents from Elastic given their ids as dataset.
     
@@ -158,6 +179,9 @@ def elastic_delete(self, index=None, doc_type=None, refresh=False, hosts=None):
         Whether to refresh the index afterwards.
     :param hosts: str or iterable (optional)
         Hosts which serve as contact points for the Elastic client.
+    :param kwargs:
+        Keyword arguments passed on to the elasticsearch bulk function.
+        Default values are read from ctx.conf['bndl_elastic.bulk_*'].
     '''
     index, doc_type = resource_from_conf(self.ctx.conf, index, doc_type)
     return _elastic_bulk(self.map(lambda doc_id: {
@@ -165,4 +189,4 @@ def elastic_delete(self, index=None, doc_type=None, refresh=False, hosts=None):
         '_index': index,
         '_type': doc_type,
         '_id': doc_id,
-    }), index, doc_type, refresh, hosts)
+    }), index, doc_type, refresh, hosts, **kwargs)

@@ -1,6 +1,6 @@
 from bndl.compute.context import ComputeContext
 from bndl.compute.dataset import Dataset
-from bndl.util.conf import CSV, String
+from bndl.util.conf import CSV, String, Int, Bool
 from bndl.util.funcs import as_method
 from bndl_elastic.bulk import elastic_bulk, elastic_create, \
     elastic_index, elastic_update, elastic_delete, elastic_upsert
@@ -12,6 +12,14 @@ from bndl_elastic.dataset import ElasticSearchDataset
 hosts = CSV()
 index = String()
 doc_type = String()
+
+timeout = Int(120)
+max_retries = Int(3)
+retry_on_timeout = Bool(True)
+
+bulk_timeout = Int(timeout.default)
+bulk_chunk_size = Int(100)
+bulk_max_chunk_bytes = Int(1 * 1024 * 1024)
 
 
 # Bndl API extensions
