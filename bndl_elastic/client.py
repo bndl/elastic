@@ -34,8 +34,12 @@ def _get_hosts(ctx, *hosts):
     return tuple(sorted(hosts))
 
 
+
+
 @lru_cache(1024)
 def parse_hostname(url):
+    if url.startswith('inet[/') and url.endswith(']'):
+        url = url[6:-1]
     if '://' not in url:
         url = '//' + url
     return urlparse(url).hostname
