@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bndl_elastic',
-    version='0.2.2',
+    version='0.3.0',
     url='https://stash.tgho.nl/projects/THCLUSTER/repos/bndl_elastic/browse',
     description='Read from and write to Elastic Search with BNDL',
     long_description=open('README.md').read(),
@@ -20,7 +20,7 @@ setup(
     zip_safe=False,
 
     install_requires=[
-        'bndl',
+        'bndl>=0.3.0',
         'elasticsearch',
         'netifaces',
     ],

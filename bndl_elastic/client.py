@@ -24,9 +24,9 @@ def _get_hosts(ctx, *hosts):
     if not hosts:
         hosts = set()
         for worker in ctx.workers:
-            hosts |= worker.ip_addresses
+            hosts |= worker.ip_addresses()
     if not hosts:
-        hosts = ctx.node.ip_addresses
+        hosts = ctx.node.ip_addresses()
     if isinstance(hosts, str):
         hosts = [hosts]
     if isinstance(hosts, Sequence) and len(hosts) == 1 and isinstance(hosts[0], str):

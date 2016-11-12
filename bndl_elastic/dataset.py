@@ -63,11 +63,11 @@ class ElasticSearchScrollPartition(Partition):
         return [
             worker
             for worker in workers
-            if worker.ip_addresses & self.allocation
+            if worker.ip_addresses() & self.allocation
         ]
 
-    def _materialize(self, ctx):
-        with elastic_client(ctx, hosts=self.dset.hosts) as client:
+    def _compute(self):
+        with elastic_client(self.dset.ctx, hosts=self.dset.hosts) as client:
             yield from scan(
                 client,
                 index=self.dset.index,
