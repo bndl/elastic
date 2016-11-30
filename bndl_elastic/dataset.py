@@ -38,26 +38,35 @@ class ElasticSearchDataset(Dataset):
         self.hosts = hosts
         self.kwargs = kwargs
 
+
     def parts(self):
         with elastic_client(self.ctx, hosts=self.hosts) as client:
             resp = client.search_shards(self.index, self.doc_type)
 
         nodes = resp['nodes']
-        allocations = [
-            [parse_hostname(nodes[allocation['node']]['transport_address']) for allocation in shard]
+        shards = [
+            (
+                shard[0]['index'],
+                shard[0]['shard'],
+                [parse_hostname(nodes[allocation['node']]['transport_address']) for allocation in shard]
+            )
             for shard in resp['shards']
         ]
 
         return [
-            ElasticSearchScrollPartition(self, i, allocation)
-            for i, allocation in enumerate(allocations)
+            ElasticSearchScrollPartition(self, idx, *shard)
+            for idx, shard in enumerate(shards)
         ]
 
 
+
 class ElasticSearchScrollPartition(Partition):
-    def __init__(self, dset, idx, allocation):
+    def __init__(self, dset, idx, index, shard, allocation):
         super().__init__(dset, idx)
+        self.index = index
+        self.shard = shard
         self.allocation = set(allocation)
+
 
     def _preferred_workers(self, workers):
         return [
@@ -66,12 +75,13 @@ class ElasticSearchScrollPartition(Partition):
             if worker.ip_addresses() & self.allocation
         ]
 
+
     def _compute(self):
         with elastic_client(self.dset.ctx, hosts=self.dset.hosts) as client:
             yield from scan(
                 client,
-                index=self.dset.index,
+                index=self.index,
                 doc_type=self.dset.doc_type,
-                preference='_shards:%s' % self.idx,
+                preference='_shards:%s' % self.shard,
                 **self.dset.kwargs
             )
