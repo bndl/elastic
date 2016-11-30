@@ -48,7 +48,7 @@ class ElasticSearchDataset(Dataset):
             (
                 shard[0]['index'],
                 shard[0]['shard'],
-                [parse_hostname(nodes[allocation['node']]['transport_address']) for allocation in shard]
+                [parse_hostname(allocation[nodes['node']]['transport_address']) for allocation in shard]
             )
             for shard in resp['shards']
         ]
@@ -61,18 +61,18 @@ class ElasticSearchDataset(Dataset):
 
 
 class ElasticSearchScrollPartition(Partition):
-    def __init__(self, dset, idx, index, shard, allocation):
+    def __init__(self, dset, idx, index, shard, nodes):
         super().__init__(dset, idx)
         self.index = index
         self.shard = shard
-        self.allocation = set(allocation)
+        self.nodes = set(nodes)
 
 
-    def _preferred_workers(self, workers):
+    def _locality(self, workers):
         return [
             worker
             for worker in workers
-            if worker.ip_addresses() & self.allocation
+            if worker.ip_addresses() & self.nodes
         ]
 
 
