@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 
+import os.path
+
 from setuptools import setup, find_packages
+
+
+with open(os.path.join(os.path.dirname(__file__), 'bndl_elastic', '__version__.py')) as f:
+    version = {}
+    exec(f.read(), version)
+    version = version['version']
 
 
 setup(
     name='bndl_elastic',
-    version='0.3.1',
+    version=version,
     url='https://stash.tgho.nl/projects/THCLUSTER/repos/bndl_elastic/browse',
     description='Read from and write to Elastic Search with BNDL',
     long_description=open('README.md').read(),
