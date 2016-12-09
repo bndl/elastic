@@ -1,4 +1,20 @@
-.PHONY: clean test codestyle  
+ELASTIC_VERSION ?= 5.1.1
+ELASTIC_VERSION_MAJOR ?= 5
+
+ifeq ('$(ELASTIC_VERSION_MAJOR)', '5')
+	ELASTIC_URL = https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/$(ELASTIC_VERSION)/elasticsearch-$(ELASTIC_VERSION).tar.gz
+endif
+
+ifeq ('$(ELASTIC_VERSION_MAJOR)', '2')
+	ELASTIC_URL = https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$(ELASTIC_VERSION).tar.gz
+endif
+
+ifeq ('$(ELASTIC_VERSION_MAJOR)', '1')
+	ELASTIC_URL = https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-$(ELASTIC_VERSION).tar.gz
+endif
+
+
+.PHONY: clean test codestyle install-elastic start-elastic stop-elastic
 
 clean:
 	find bndl_elastic -name '*.pyc' -exec rm -f {} +
@@ -22,3 +38,15 @@ test:
 codestyle:
 	pylint bndl_elastic > build/pylint.html || :
 	flake8 bndl_elastic > build/flake8.txt || :
+
+
+install-elastic:
+	pip install "elasticsearch>=$(ELASTIC_VERSION_MAJOR),<$(shell expr $(ELASTIC_VERSION_MAJOR) + 1)"
+	cd /tmp ; test -d elasticsearch-$(ELASTIC_VERSION) || curl $(ELASTIC_URL) | tar xz
+
+start-elastic: install-elastic stop-elastic
+	nohup /tmp/elasticsearch-$(ELASTIC_VERSION)/bin/elasticsearch > /tmp/elastic.log 2>&1 & echo $$! > /tmp/elastic.pid
+
+stop-elastic:
+	kill `cat /tmp/elastic.pid` || :
+	rm /tmp/elastic.pid || :
