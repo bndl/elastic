@@ -1,5 +1,6 @@
 ELASTIC_VERSION ?= 5.1.1
-ELASTIC_VERSION_MAJOR ?= 5
+
+ELASTIC_VERSION_MAJOR = $(word 1,$(subst ., ,$(ELASTIC_VERSION)))
 
 ifeq ('$(ELASTIC_VERSION_MAJOR)', '5')
 	ELASTIC_URL = https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/$(ELASTIC_VERSION)/elasticsearch-$(ELASTIC_VERSION).tar.gz
@@ -17,6 +18,7 @@ endif
 .PHONY: clean test codestyle install-elastic start-elastic stop-elastic
 
 clean:
+	@echo $(ELASTIC_URL)
 	find bndl_elastic -name '*.pyc' -exec rm -f {} +
 	find bndl_elastic -name '*.pyo' -exec rm -f {} +
 	find bndl_elastic -name '*.c' -exec rm -f {} +
