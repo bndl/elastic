@@ -48,7 +48,7 @@ class ElasticSearchDataset(Dataset):
             (
                 shard[0]['index'],
                 shard[0]['shard'],
-                [parse_hostname(allocation[nodes['node']]['transport_address']) for allocation in shard]
+                [parse_hostname(nodes[allocation['node']]['transport_address']) for allocation in shard]
             )
             for shard in resp['shards']
         ]
