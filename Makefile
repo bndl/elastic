@@ -12,13 +12,13 @@ clean:
 	rm -rf .coverage .coverage.* htmlcov
 
 test:
-	rm -fr .coverage .coverage.* htmlcov
-	BNDL_SUPERVISOR_ONSIGTERM=raise_exit \
-	COVERAGE_PROCESS_START=.coveragerc \
-	coverage run -m pytest bndl_elastic
-	coverage combine
-	coverage html
+    rm -fr .coverage .coverage.* htmlcov
+    COVERAGE_PROCESS_START=.coveragerc \
+    coverage run -m pytest --junitxml build/junit.xml bndl_elastic
+    coverage combine
+    coverage html -d build/htmlcov
+    coverage xml -o build/coverage.xml
 
 codestyle:
-	pylint bndl_elastic > build/pylint.html
-	flake8 bndl_elastic > build/flake8.txt
+	pylint bndl_elastic > build/pylint.html || :
+	flake8 bndl_elastic > build/flake8.txt || :
