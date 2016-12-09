@@ -37,7 +37,7 @@ test:
 	coverage xml -o build/coverage.xml
 
 codestyle:
-	pylint bndl_elastic > build/pylint.html || :
+	pylint bndl_elastic > build/pylint.log || :
 	flake8 bndl_elastic > build/flake8.txt || :
 
 
