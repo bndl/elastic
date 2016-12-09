@@ -16,7 +16,7 @@ setup(
     version=version,
     url='https://stash.tgho.nl/projects/THCLUSTER/repos/bndl_elastic/browse',
     description='Read from and write to Elastic Search with BNDL',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     author='Frens Jan Rumph',
     author_email='mail@frensjan.nl',
 
