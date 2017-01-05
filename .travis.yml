@@ -11,6 +11,8 @@ addons:
       - oracle-java8-installer
 
 env:
+  - ELASTIC_VERSION=1.7.6
+  - ELASTIC_VERSION=2.4.3
   - ELASTIC_VERSION=5.1.1
 
 before_install:
