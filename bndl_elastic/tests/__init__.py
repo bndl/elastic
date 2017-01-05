@@ -25,6 +25,7 @@ class ElasticTest(DatasetTest):
 #             client.indices.delete(self.index)
 
     def refresh(self):
-        with self.ctx.elastic_client() as client:
-            client.indices.refresh()
-        time.sleep(1)
+        for _ in range(3):
+            with self.ctx.elastic_client() as client:
+                client.indices.refresh()
+            time.sleep(1)
