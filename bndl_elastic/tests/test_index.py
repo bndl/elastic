@@ -7,6 +7,7 @@ class IndexTest(ElasticTest):
         # create
         inserts = self.ctx.range(100).with_value(lambda i: {'name': str(i)})
         saved = inserts.elastic_create(refresh=True).sum()
+        self.refresh()
         self.assertEqual(saved, 100)
         scan = self.ctx.elastic_search()
         self.assertEqual(scan.count(), 100)
@@ -14,6 +15,7 @@ class IndexTest(ElasticTest):
         # update
         updates = self.ctx.range(100).with_value(lambda i: {'number': i})
         updated = updates.elastic_update(refresh=True).sum()
+        self.refresh()
         self.assertEqual(updated, 100)
         self.assertEqual(scan.count(), 100)
         hits = scan.collect()
@@ -24,6 +26,7 @@ class IndexTest(ElasticTest):
         # upsert
         upserts = self.ctx.range(200).with_value(lambda i: {'text': str(i)})
         upserted = upserts.elastic_upsert(refresh=True).sum()
+        self.refresh()
         self.assertEqual(upserted, 200)
         self.assertEqual(scan.pluck('_source').filter(lambda hit: 'name' in hit).count(), 100)
         self.assertEqual(scan.pluck('_source').filter(lambda hit: 'number' in hit).count(), 100)
@@ -33,6 +36,7 @@ class IndexTest(ElasticTest):
         # create again
         creates = self.ctx.range(200, 300).with_value(lambda i: {'text': str(i)})
         created = creates.elastic_create(refresh=True).sum()
+        self.refresh()
         self.assertEqual(created, 100)
         self.assertEqual(scan.pluck('_source').filter(lambda hit: 'name' in hit).count(), 100)
         self.assertEqual(scan.pluck('_source').filter(lambda hit: 'number' in hit).count(), 100)
@@ -45,6 +49,7 @@ class IndexTest(ElasticTest):
 
         # delete
         deleted = self.ctx.range(100, 200).elastic_delete(refresh=True).sum()
+        self.refresh()
         self.assertEqual(deleted, 100)
         self.assertEqual(scan.pluck('_id').map(int).sort().collect(),
                          list(range(100)) + list(range(200, 300)))

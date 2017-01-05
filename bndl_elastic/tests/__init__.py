@@ -1,3 +1,5 @@
+import time
+
 from bndl.compute.tests import DatasetTest
 from elasticsearch.client import Elasticsearch
 
@@ -21,3 +23,8 @@ class ElasticTest(DatasetTest):
         super().tearDown()
 #         with self.ctx.elastic_client() as client:
 #             client.indices.delete(self.index)
+
+    def refresh(self):
+        with self.ctx.elastic_client() as client:
+            client.indices.refresh()
+        time.sleep(1)
