@@ -47,7 +47,7 @@ install-elastic:
 
 start-elastic: install-elastic stop-elastic
 	nohup /tmp/elasticsearch-$(ELASTIC_VERSION)/bin/elasticsearch > /tmp/elastic.log 2>&1 & echo $$! > /tmp/elastic.pid
-	while ! timeout 1 bash -c "echo > /dev/tcp/localhost/9200"; do sleep 1; done
+	while ! timeout 1 bash -c "echo > /dev/tcp/localhost/9200"; do sleep 3; done
 
 stop-elastic:
 	kill `cat /tmp/elastic.pid` || :
