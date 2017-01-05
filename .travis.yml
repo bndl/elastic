@@ -1,0 +1,33 @@
+language: python
+
+python:
+  - 3.5-dev
+
+sudo: required
+
+addons:  
+  apt:
+    packages:
+      - oracle-java8-installer
+
+env:
+  - ELASTIC_VERSION=5.1.1
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo update-java-alternatives -s java-8-oracle
+  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+  - java -version
+  - pip install pip --upgrade
+  - git clone git://github.com/bndl/bndl.git
+  - sudo apt-get install liblapack-dev libopenblas-dev libatlas-base-dev gfortran
+  - pip install -e "bndl[dev]"
+
+install:
+  - pip install -e .[dev]
+
+script: make clean start-elastic test codestyle stop-elastic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
