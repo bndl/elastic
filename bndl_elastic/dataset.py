@@ -1,4 +1,4 @@
-from bndl.compute.dataset import Dataset, Partition
+from bndl.compute.dataset import Dataset, Partition, NODE_LOCAL
 from bndl_elastic.client import elastic_client, parse_hostname, resource_from_conf
 from elasticsearch.helpers import scan
 
@@ -69,11 +69,9 @@ class ElasticSearchScrollPartition(Partition):
 
 
     def _locality(self, workers):
-        return [
-            worker
-            for worker in workers
-            if worker.ip_addresses() & self.nodes
-        ]
+        for worker in workers:
+            if worker.ip_addresses() & self.nodes:
+                yield worker, NODE_LOCAL
 
 
     def _compute(self):
