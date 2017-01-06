@@ -1,5 +1,8 @@
 language: python
-cache: pip
+cache:
+  directories:
+  - $HOME/.cache/pip
+  - /tmp/elasticsearch
 
 python:
   - 3.5-dev
