@@ -6,6 +6,14 @@ BNDL Elastic exposes loading from and saving to functionality of the
 `python driver <https://github.com/elastic/elasticsearch-py>`_ for
 `Elasticsearch <https://www.elastic.co/>`_.
 
+Master branch build status: |travis| |codecov|
+
+.. |travis| image:: https://travis-ci.org/bndl/elastic.svg?branch=master
+   :target: https://travis-ci.org/bndl/elastic
+
+.. |codecov| image:: https://codecov.io/gh/bndl/elastic/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/bndl/elastic/branch/master
+
 ---------------------------------------------------------------------------------------------------
 
 BNDL Elastic can be installed through pip::
