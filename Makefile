@@ -43,12 +43,16 @@ codestyle:
 
 install-elastic:
 	pip install "elasticsearch>=$(ELASTIC_VERSION_MAJOR),<$(shell expr $(ELASTIC_VERSION_MAJOR) + 1)"
-	cd /tmp ; test -d elasticsearch-$(ELASTIC_VERSION) || curl $(ELASTIC_URL) | tar xz
+	mkdir -p /tmp/elasticsearch
+	cd /tmp/elasticsearch ; test -d $(ELASTIC_VERSION) || \
+		(curl $(ELASTIC_URL) | tar xz && mv elasticsearch-$(ELASTIC_VERSION) $(ELASTIC_VERSION))
 
-start-elastic: install-elastic stop-elastic
-	nohup /tmp/elasticsearch-$(ELASTIC_VERSION)/bin/elasticsearch > /tmp/elastic.log 2>&1 & echo $$! > /tmp/elastic.pid
-	while ! timeout 1 bash -c "echo > /dev/tcp/localhost/9200"; do sleep 3; done
+start-elastic: stop-elastic install-elastic
+	nohup /tmp/elasticsearch/$(ELASTIC_VERSION)/bin/elasticsearch > /tmp/elasticsearch/elastic.log 2>&1 & \
+		echo $$! > /tmp/elasticsearch/elastic.pid
+	while ! timeout 1 bash -c "echo > /dev/tcp/localhost/9200" > /dev/null 2>&1 ; do sleep 3 ; done
 
 stop-elastic:
-	kill `cat /tmp/elastic.pid` || :
-	rm /tmp/elastic.pid || :
+	test -f /tmp/elasticsearch/elastic.pid && kill `cat /tmp/elasticsearch/elastic.pid` || :
+	test -f /tmp/elasticsearch/elastic.pid && rm /tmp/elasticsearch/elastic.pid || :
+
